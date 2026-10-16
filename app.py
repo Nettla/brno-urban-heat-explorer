@@ -197,31 +197,36 @@ st.divider()
 # KEY METRICS
 # --------------------------------------------------
 
-col1, col2, col3 = st.columns(3)
+col1, col2, col3 = st.columns(3, gap="medium")
 
 with col1:
-    st.metric(
-        "Air temperature trend",
-        f"{era5_trend.slope * 10:+.2f} °C / decade"
-    )
+    with st.container(border=True):
+        st.metric(
+            "Air temperature trend",
+            f"{era5_trend.slope * 10:+.2f} °C / decade"
+        )
+        st.caption("ERA5-Land | 2001–2025")
 
 with col2:
-    st.metric(
-        "Surface temperature change",
-        "+0.83 °C"
-    )
-    st.caption("2021–2025 vs. 2001–2005")
+    with st.container(border=True):
+        st.metric(
+            "Surface temperature change",
+            "+0.83 °C"
+        )
+        st.caption("2021–2025 vs. 2001–2005")
 
 with col3:
-    st.metric(
-        "Analysis period",
-        "25 years"
-    )
-    st.caption("2001–2025")
+    with st.container(border=True):
+        st.metric(
+            "Analysis period",
+            "25 years"
+        )
+        st.caption("Summer months | 2001–2025")
 
 st.caption(
-    "The +0.83 °C surface change comes from the "
-    "spatial comparison of five-year Landsat composites."
+    "The +0.83 °C surface change represents a spatial "
+    "comparison of five-year Landsat composites, "
+    "not the long-term regression trend."
 )
 
 
