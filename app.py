@@ -295,16 +295,73 @@ with tab1:
         "but remains statistically uncertain."
     )
 
-    with st.expander("View annual temperature data"):
+
+    # --------------------------------------------------
+    # ANNUAL DATA TABLES AND DOWNLOADS
+    # --------------------------------------------------
+
+    with st.expander("Explore & download annual temperature data"):
+
         c1, c2 = st.columns(2)
 
+        # Display-friendly column names
+        landsat_table = df_lst.rename(columns={
+            "year": "Year",
+            "mean_lst_c": "Surface temperature (°C)",
+            "coverage_pct": "Spatial coverage (%)",
+            "scene_count": "Satellite scenes"
+        }).round({
+            "Surface temperature (°C)": 2,
+            "Spatial coverage (%)": 1
+        })
+
+        era5_table = df_era5.rename(columns={
+            "year": "Year",
+            "air_temp_c": "Air temperature (°C)",
+            "day_count": "Days analysed"
+        }).round({
+            "Air temperature (°C)": 2
+        })
+
         with c1:
-            st.subheader("Landsat")
-            st.dataframe(df_lst, hide_index=True)
+            st.subheader("Landsat | Surface Temperature")
+
+            st.dataframe(
+                landsat_table,
+                hide_index=True,
+                width="stretch"
+            )
+
+            st.download_button(
+                label="Download Landsat CSV",
+                data=df_lst.to_csv(index=False).encode("utf-8"),
+                file_name="brno_landsat_2001_2025.csv",
+                mime="text/csv",
+                key="download_landsat"
+            )
 
         with c2:
-            st.subheader("ERA5-Land")
-            st.dataframe(df_era5, hide_index=True)
+            st.subheader("ERA5-Land | Air Temperature")
+
+            st.dataframe(
+                era5_table,
+                hide_index=True,
+                width="stretch"
+            )
+
+            st.download_button(
+                label="Download ERA5-Land CSV",
+                data=df_era5.to_csv(index=False).encode("utf-8"),
+                file_name="brno_era5_land_2001_2025.csv",
+                mime="text/csv",
+                key="download_era5"
+            )
+
+        st.caption(
+            "Landsat surface temperatures are derived from "
+            "satellite observations. ERA5-Land air temperatures "
+            "are derived from climate reanalysis."
+        )
 
 
 # --------------------------------------------------
