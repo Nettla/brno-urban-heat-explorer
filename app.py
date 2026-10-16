@@ -241,6 +241,7 @@ tab1, tab2, tab3 = st.tabs([
 ])
 
 
+
 # --------------------------------------------------
 # TAB 1: TEMPERATURE TRENDS
 # --------------------------------------------------
@@ -254,12 +255,31 @@ with tab1:
         "with estimated air temperatures."
     )
 
+    # Select the period displayed in both charts
+    start_year, end_year = st.slider(
+        "Select years to display",
+        min_value=2001,
+        max_value=2025,
+        value=(2001, 2025),
+        step=1
+    )
+
+    st.caption(
+        "The selected period changes the chart view only. "
+        "Trend estimates remain based on 2001–2025."
+    )
+
+    # LANDSAT - SURFACE TEMPERATURE
     fig_surface = create_chart(
         df_lst,
         "mean_lst_c",
         lst_trend,
         "Summer Surface Temperature — Landsat",
         is_landsat=True
+    )
+
+    fig_surface.update_xaxes(
+        range=[start_year - 0.5, end_year + 0.5]
     )
 
     st.plotly_chart(
@@ -275,11 +295,16 @@ with tab1:
 
     st.divider()
 
+    # ERA5-LAND - AIR TEMPERATURE
     fig_air = create_chart(
         df_era5,
         "air_temp_c",
         era5_trend,
         "Summer Air Temperature — ERA5-Land"
+    )
+
+    fig_air.update_xaxes(
+        range=[start_year - 0.5, end_year + 0.5]
     )
 
     st.plotly_chart(
@@ -299,6 +324,7 @@ with tab1:
         "surface temperature trend is positive, "
         "but remains statistically uncertain."
     )
+
 
 
     # --------------------------------------------------
