@@ -157,6 +157,19 @@ def create_chart(df, y_column, trend, title, is_landsat=False):
         hovermode="closest"
     )
 
+    # Softer grid lines for the dark dashboard
+    fig.update_xaxes(
+        showgrid=True,
+        gridcolor="rgba(150, 160, 175, 0.15)",
+        zeroline=False
+    )
+
+    fig.update_yaxes(
+        showgrid=True,
+        gridcolor="rgba(150, 160, 175, 0.20)",
+        zeroline=False
+    )
+
     return fig
 
 
