@@ -251,29 +251,71 @@ with tab1:
     st.header("25 YEARS IN NUMBERS")
 
     st.write(
-        "Compare annual summer surface temperatures "
-        "with estimated air temperatures."
+        "Explore summer temperature trends in Brno. "
+        "Select a time period to recalculate the "
+        "linear regression for both datasets."
     )
 
-    # Select the period displayed in both charts
+    # SELECT ANALYSIS PERIOD
     start_year, end_year = st.slider(
-        "Select years to display",
+        "Select analysis period",
         min_value=2001,
         max_value=2025,
         value=(2001, 2025),
         step=1
     )
 
-    st.caption(
-        "The selected period changes the chart view only. "
-        "Trend estimates remain based on 2001–2025."
+    # Filter datasets for selected years
+    lst_period = df_lst[
+        df_lst["year"].between(start_year, end_year)
+    ].copy()
+
+    era5_period = df_era5[
+        df_era5["year"].between(start_year, end_year)
+    ].copy()
+
+    # Landsat regression excludes coverage below 90%
+    lst_valid_period = lst_period[
+        lst_period["coverage_pct"] >= 90
+    ]
+
+    # Require at least 5 valid years for regression
+    min_years = 5
+
+    lst_period_trend = (
+        linregress(
+            lst_valid_period["year"],
+            lst_valid_period["mean_lst_c"]
+        )
+        if len(lst_valid_period) >= min_years
+        else None
     )
 
-    # LANDSAT - SURFACE TEMPERATURE
+    era5_period_trend = (
+        linregress(
+            era5_period["year"],
+            era5_period["air_temp_c"]
+        )
+        if len(era5_period) >= min_years
+        else None
+    )
+
+    st.caption(
+        f"Selected period: {start_year}–{end_year}. "
+        "Regression lines and statistics are recalculated "
+        "for the selected years. The summary cards above "
+        "retain the original full-period results."
+    )
+
+    # LANDSAT CHART
+    st.subheader("Landsat | Surface Temperature")
+
     fig_surface = create_chart(
-        df_lst,
+        lst_period,
         "mean_lst_c",
-        lst_trend,
+        lst_period_trend
+        if lst_period_trend is not None
+        else lst_trend,
         "Summer Surface Temperature — Landsat",
         is_landsat=True
     )
@@ -282,24 +324,46 @@ with tab1:
         range=[start_year - 0.5, end_year + 0.5]
     )
 
+    if lst_period_trend is None:
+        fig_surface.data[1].visible = False
+
     st.plotly_chart(
         fig_surface,
         width="stretch"
     )
 
-    st.caption(
-        f"Landsat trend: {lst_trend.slope * 10:+.2f} "
-        f"°C per decade (p = {lst_trend.pvalue:.3f}). "
-        "Not statistically significant."
-    )
+    if lst_period_trend is not None:
+        lst_significance = (
+            "Statistically significant"
+            if lst_period_trend.pvalue < 0.05
+            else "Not statistically significant"
+        )
+
+        st.caption(
+            f"Selected-period trend: "
+            f"{lst_period_trend.slope * 10:+.2f} "
+            f"°C per decade "
+            f"(p = {lst_period_trend.pvalue:.3f}; "
+            f"{len(lst_valid_period)} valid years). "
+            f"{lst_significance}."
+        )
+    else:
+        st.warning(
+            "Landsat regression is not displayed: "
+            "fewer than 5 valid years in the selected period."
+        )
 
     st.divider()
 
-    # ERA5-LAND - AIR TEMPERATURE
+    # ERA5-LAND CHART
+    st.subheader("ERA5-Land | Air Temperature")
+
     fig_air = create_chart(
-        df_era5,
+        era5_period,
         "air_temp_c",
-        era5_trend,
+        era5_period_trend
+        if era5_period_trend is not None
+        else era5_trend,
         "Summer Air Temperature — ERA5-Land"
     )
 
@@ -307,23 +371,44 @@ with tab1:
         range=[start_year - 0.5, end_year + 0.5]
     )
 
+    if era5_period_trend is None:
+        fig_air.data[1].visible = False
+
     st.plotly_chart(
         fig_air,
         width="stretch"
     )
 
-    st.caption(
-        f"ERA5-Land trend: {era5_trend.slope * 10:+.2f} "
-        f"°C per decade (p = {era5_trend.pvalue:.3f}). "
-        "Statistically significant."
-    )
+    if era5_period_trend is not None:
+        era5_significance = (
+            "Statistically significant"
+            if era5_period_trend.pvalue < 0.05
+            else "Not statistically significant"
+        )
+
+        st.caption(
+            f"Selected-period trend: "
+            f"{era5_period_trend.slope * 10:+.2f} "
+            f"°C per decade "
+            f"(p = {era5_period_trend.pvalue:.3f}; "
+            f"{len(era5_period)} years). "
+            f"{era5_significance}."
+        )
+    else:
+        st.warning(
+            "ERA5-Land regression is not displayed: "
+            "fewer than 5 years in the selected period."
+        )
 
     st.info(
-        "Summer air temperatures show a statistically "
-        "significant warming trend. The estimated "
-        "surface temperature trend is positive, "
-        "but remains statistically uncertain."
+        "Trend estimates are calculated for the selected "
+        "period using ordinary least squares regression. "
+        "Shorter time periods can produce highly uncertain "
+        "estimates. Landsat surface temperature and "
+        "ERA5-Land air temperature represent different "
+        "physical quantities."
     )
+
 
 
 
