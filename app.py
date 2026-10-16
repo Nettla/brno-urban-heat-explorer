@@ -6,6 +6,8 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 from scipy.stats import linregress
+import plotly.express as px
+from PIL import Image
 
 
 # --------------------------------------------------
@@ -305,10 +307,35 @@ with tab2:
         "2001–2005 and 2021–2025."
     )
 
-    st.image(
-        str(ASSETS_DIR / "brno_heat_change.png"),
-        width="stretch"
+
+    # Interactive zoomable map
+    map_image = Image.open(
+        ASSETS_DIR / "brno_heat_change.png"
     )
+
+    fig_map = px.imshow(map_image)
+
+    fig_map.update_layout(
+        height=650,
+        margin=dict(l=0, r=0, t=0, b=0),
+        dragmode="pan",
+        paper_bgcolor="white"
+    )
+
+    fig_map.update_xaxes(visible=False)
+    fig_map.update_yaxes(visible=False)
+    fig_map.update_traces(hoverinfo="skip")
+
+    st.plotly_chart(
+        fig_map,
+        width="stretch",
+        config={
+            "scrollZoom": True,
+            "displayModeBar": True,
+            "displaylogo": False
+        }
+    )
+
 
     st.markdown(
         "**Key finding:** The city-wide mean surface "
